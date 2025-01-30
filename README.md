@@ -3,7 +3,7 @@
 ## [Demo](https://passkey-demo.espaciofuturo.io)
 
 <div align="center">
-  <img src="https://github.com/espaciofuturoio/passkey/blob/main/assets/passkey-demo.gif" alt="Passkey Demostration">
+  <img src="https://github.com/espaciofuturoio/stellar-passkey/blob/main/assets/stellar-demo.gif" alt="Stellar Passkey Demostration">
 </div>
 
 ## Overview
@@ -153,15 +153,6 @@ This hook manages Stellar operations such as deploying contracts and signing tra
 - [Stellar](https://stellar.org/learn)
 - [Cross platform Stellar smart wallet demo](https://github.com/kalepail/soroban-passkey)
 
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
-
-## License
-
-This project is licensed under the MIT License.
-
 ## Stellar Integration
 
 ### Derivation Address
@@ -188,3 +179,11 @@ The Passkey project leverages passkeys for secure and convenient user authentica
 - **Security:** Passkeys eliminate the need for passwords, reducing the risk of phishing and credential theft.
 - **Convenience:** Users can authenticate with a simple biometric scan or device unlock, streamlining the login process.
 - **Privacy:** Passkeys ensure that sensitive information never leaves the user's device, enhancing privacy.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
+
+## License
+
+This project is licensed under the MIT License.
