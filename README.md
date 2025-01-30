@@ -26,8 +26,8 @@ The Passkey project is a web application that implements WebAuthn for secure use
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/yourusername/passkey.git
-   cd passkey
+   git clone git@github.com:espaciofuturoio/stellar-passkey.git
+   cd stellar-passkey
    ```
 
 2. **Install dependencies:**
