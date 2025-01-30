@@ -48,6 +48,7 @@ const onVotes = async (bundlerKey: Keypair, deployee: string) => {
 };
 
 export const useStellar = () => {
+	// Manages Stellar operations such as deploying contracts and signing transactions
 	const [loadingDeployee, setLoadingDeployee] = useState(true);
 	const [deployee, setDeployee] = useState<string | null>(null);
 	const bundlerKey = useRef<Keypair | null>(null);
@@ -56,6 +57,7 @@ export const useStellar = () => {
 	const [contractData, setContractData] = useState<any | null>(null); // Just for testing
 
 	const onRegister = async (registerRes: RegistrationResponseJSON) => {
+		// Handles registration with Stellar by deploying a contract
 		if (deployee) return;
 		try {
 			setLoadingRegister(true);
@@ -79,6 +81,7 @@ export const useStellar = () => {
 	};
 
 	const prepareSign = async (): Promise<PresignData> => {
+		// Prepares data for signing a transaction on the Stellar network
 		if (!bundlerKey.current) throw new Error("Bundler key not found");
 		if (!deployee) throw new Error("Deployee not found");
 		const { authTxn, authHash, lastLedger } = await handleVoteBuild(
@@ -91,6 +94,7 @@ export const useStellar = () => {
 	};
 
 	const onSign = async ({ signRes, authTxn, lastLedger }: SignParams) => {
+		// Handles the signing of a transaction and sends it to the Stellar network
 		try {
 			setLoadingSign(true);
 			if (!bundlerKey.current) throw new Error("Bundler key not found");

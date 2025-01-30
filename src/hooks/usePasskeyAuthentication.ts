@@ -29,6 +29,7 @@ export const usePasskeyAuthentication = (
 	};
 
 	const handleAuth = async () => {
+		// Initiates the authentication process with WebAuthn and prepares for Stellar signing
 		setIsAuthenticating(true);
 		setAuthSuccess("");
 		setAuthError("");

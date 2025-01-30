@@ -20,7 +20,6 @@ export const handleVoteSend = async (
 	lastLedger: number,
 	signRes: AuthenticationResponseJSON,
 ) => {
-	debugger;
 	console.log("Sending vote");
 	const rpc = new SorobanRpc.Server(RPC_URL);
 
@@ -54,7 +53,6 @@ export const handleVoteSend = async (
 		]),
 	);
 
-	debugger;
 	const sim = await rpc.simulateTransaction(authTxn);
 
 	if (

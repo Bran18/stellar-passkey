@@ -1,4 +1,3 @@
-
 # Passkey Project
 
 ## [Demo](https://passkey-demo.espaciofuturo.io)
@@ -96,7 +95,7 @@ The Passkey project is a web application that implements WebAuthn for secure use
 
 #### `usePasskeyAuthentication`
 
-This hook manages the authentication process using WebAuthn.
+This hook manages the authentication process using WebAuthn and passkeys.
 
 - **Parameters:**
   - `identifier`: A string representing the user's identifier.
@@ -110,7 +109,7 @@ This hook manages the authentication process using WebAuthn.
 
 #### `usePasskeyRegistration`
 
-This hook manages the registration process using WebAuthn.
+This hook manages the registration process using WebAuthn and passkeys.
 
 - **Parameters:**
   - `identifier`: A string representing the user's identifier.
@@ -121,6 +120,20 @@ This hook manages the registration process using WebAuthn.
   - `regError`: String message on registration error.
   - `handleRegister`: Function to initiate the registration process.
   - `isRegistered`: Boolean indicating if the user is registered.
+
+#### `useStellar`
+
+This hook manages Stellar operations such as deploying contracts and signing transactions.
+
+- **Returns:**
+  - `onRegister`: Function to handle registration with Stellar.
+  - `onSign`: Function to handle signing of transactions.
+  - `prepareSign`: Function to prepare data for signing.
+  - `deployee`: The current deployee address.
+  - `loadingRegister`: Boolean indicating if registration is in progress.
+  - `loadingSign`: Boolean indicating if signing is in progress.
+  - `loadingDeployee`: Boolean indicating if deployee data is being loaded.
+  - `contractData`: Data related to the deployed contract.
 
 ## Code Structure
 
@@ -137,6 +150,9 @@ This hook manages the registration process using WebAuthn.
 - [WebAuthn Documentation](https://webauthn.guide/)
 - [SimpleWebAuthn](https://simplewebauthn.dev/)
 - [Passkeys Guide](https://www.passkeys.com/guide)
+- [Stellar](https://stellar.org/learn)
+- [Cross platform Stellar smart wallet demo](https://github.com/kalepail/soroban-passkey)
+
 
 ## Contributing
 
@@ -145,3 +161,30 @@ Contributions are welcome! Please open an issue or submit a pull request for any
 ## License
 
 This project is licensed under the MIT License.
+
+## Stellar Integration
+
+### Derivation Address
+
+The application uses Stellar for blockchain operations. Each user is associated with a unique derivation address, which is generated using the Stellar SDK. This address is used for various operations such as deploying contracts and voting.
+
+### Signing Process
+
+The signing process involves creating a transaction that is signed using the user's private key. This ensures that all operations are securely authorized by the user. The application handles signing through the `useStellar` hook, which interacts with the Stellar network to perform operations like deploying contracts and voting.
+
+## Passkey Integration
+
+### Overview
+
+The Passkey project leverages passkeys for secure and convenient user authentication. Passkeys are a modern authentication method that replaces traditional passwords with cryptographic keys, providing a seamless and secure user experience.
+
+### How Passkeys Work
+
+- **Registration:** During registration, a passkey is generated and stored securely on the user's device. This passkey is used to create a unique derivation address on the Stellar network.
+- **Authentication:** When a user attempts to authenticate, the passkey is used to sign a challenge, verifying the user's identity without transmitting sensitive information.
+
+### Benefits of Passkeys
+
+- **Security:** Passkeys eliminate the need for passwords, reducing the risk of phishing and credential theft.
+- **Convenience:** Users can authenticate with a simple biometric scan or device unlock, streamlining the login process.
+- **Privacy:** Passkeys ensure that sensitive information never leaves the user's device, enhancing privacy.
