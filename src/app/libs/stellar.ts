@@ -57,7 +57,7 @@ const getPublicKeyObject = (attestationObject: string) => {
 		const theRest = authData.slice(offset);
 
 		// Decode the credential public key to COSE
-		const publicKeyObject = new Map<string, any>(
+		const publicKeyObject = new Map<string, unknown>(
 			Object.entries(CBOR.decode(credentialPublicKey)),
 		);
 
@@ -91,8 +91,8 @@ export const getPublicKeys = async (
 		);
 		const publicKey = Buffer.from([
 			4, // (0x04 prefix) https://en.bitcoin.it/wiki/Elliptic_Curve_Digital_Signature_Algorithm
-			...publicKeyObject.get("-2")!,
-			...publicKeyObject.get("-3")!,
+			...(publicKeyObject.get("-2") as Buffer),
+			...(publicKeyObject.get("-3") as Buffer),
 		]);
 
 		return {
@@ -115,7 +115,7 @@ export const convertEcdsaSignatureAsnToCompact = (sig: Buffer) => {
 
 	// ASN Sequence
 	let offset = 0;
-	if (sig[offset] != 0x30) {
+	if (sig[offset] !== 0x30) {
 		throw "signature is not a sequence";
 	}
 	offset += 1;
@@ -124,7 +124,7 @@ export const convertEcdsaSignatureAsnToCompact = (sig: Buffer) => {
 	offset += 1;
 
 	// ASN Integer (R)
-	if (sig[offset] != 0x02) {
+	if (sig[offset] !== 0x02) {
 		throw "first element in sequence is not an integer";
 	}
 	offset += 1;
@@ -135,7 +135,7 @@ export const convertEcdsaSignatureAsnToCompact = (sig: Buffer) => {
 
 	// ASN Integer (R) Byte Value
 	if (rLen >= 33) {
-		if (rLen != 33 || sig[offset] != 0x00) {
+		if (rLen !== 33 || sig[offset] !== 0x00) {
 			throw "can only handle larger than 32 byte R's that are len 33 and lead with zero";
 		}
 		offset += 1;
@@ -144,7 +144,7 @@ export const convertEcdsaSignatureAsnToCompact = (sig: Buffer) => {
 	offset += 32;
 
 	// ASN Integer (S)
-	if (sig[offset] != 0x02) {
+	if (sig[offset] !== 0x02) {
 		throw "second element in sequence is not an integer";
 	}
 	offset += 1;
@@ -155,7 +155,7 @@ export const convertEcdsaSignatureAsnToCompact = (sig: Buffer) => {
 
 	// ASN Integer (S) Byte Value
 	if (sLen >= 33) {
-		if (sLen != 33 || sig[offset] != 0x00) {
+		if (sLen !== 33 || sig[offset] !== 0x00) {
 			throw "can only handle larger than 32 byte R's that are len 33 and lead with zero";
 		}
 		offset += 1;

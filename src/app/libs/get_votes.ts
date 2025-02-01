@@ -66,3 +66,5 @@ export const getVotes = async (
 		total_all_votes,
 	};
 };
+
+export type Votes = Awaited<ReturnType<typeof getVotes>>;

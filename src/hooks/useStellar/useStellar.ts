@@ -6,7 +6,7 @@ import { getPublicKeys } from "@/app/libs/stellar";
 import { handleDeploy } from "../../app/libs/deploy";
 import { handleVoteBuild } from "@/app/libs/vote_build";
 import { handleVoteSend } from "@/app/libs/vote_send";
-import { getVotes } from "@/app/libs/get_votes";
+import { getVotes, type Votes } from "@/app/libs/get_votes";
 import base64url from "base64url";
 import type { PresignData, SignParams } from "./types";
 
@@ -59,7 +59,8 @@ export const useStellar = () => {
 	const bundlerKey = useRef<Keypair | null>(null);
 	const [loadingRegister, setLoadingRegister] = useState(false);
 	const [loadingSign, setLoadingSign] = useState(false);
-	const [contractData, setContractData] = useState<any | null>(null); // Just for testing
+	const [contractData, setContractData] = useState<Votes | null>(null); // Just for testing
+	const [creatingDeployee, setCreatingDeployee] = useState(false);
 
 	const onRegister = async (registerRes: RegistrationResponseJSON) => {
 		// Handles registration with Stellar by deploying a contract
@@ -70,6 +71,7 @@ export const useStellar = () => {
 			const { contractSalt, publicKey } = await getPublicKeys(registerRes);
 			if (!bundlerKey.current) throw new Error("Bundler key not found");
 			if (!contractSalt || !publicKey) throw new Error("Invalid public keys");
+			setCreatingDeployee(true);
 			const deployee = await handleDeploy(
 				bundlerKey.current,
 				contractSalt,
@@ -82,6 +84,7 @@ export const useStellar = () => {
 			console.error(error);
 		} finally {
 			setLoadingRegister(false);
+			setCreatingDeployee(false);
 		}
 	};
 
@@ -115,9 +118,19 @@ export const useStellar = () => {
 	};
 
 	const reset = () => {
+		// You should remove the passkey from the db becase you will get "Error: Authenticator was probably already registered by user"
 		removeStoredDeployee();
 		removeStoredBundler();
 		removeStoredCredentialId();
+		setDeployee(null);
+		setContractData(null);
+		setLoadingDeployee(false);
+		setLoadingRegister(false);
+		setLoadingSign(false);
+		bundlerKey.current = null;
+		window.location.reload();
+		// WORK IN PROGRESS
+		// Enable recreate the passkey
 	};
 
 	useEffect(() => {
@@ -156,6 +169,7 @@ export const useStellar = () => {
 		deployee,
 		loadingRegister,
 		loadingSign,
+		creatingDeployee,
 		loadingDeployee,
 		contractData,
 		reset,
