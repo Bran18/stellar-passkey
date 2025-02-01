@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Horizon, Keypair } from "@stellar/stellar-sdk";
 import { ENV } from "@/app/libs/env";
-import type {
-	RegistrationResponseJSON,
-} from "@simplewebauthn/browser";
+import type { RegistrationResponseJSON } from "@simplewebauthn/browser";
 import { getPublicKeys } from "@/app/libs/stellar";
 import { handleDeploy } from "../../app/libs/deploy";
 import { handleVoteBuild } from "@/app/libs/vote_build";
@@ -22,6 +20,10 @@ const setStoredDeployee = (deployee: string) => {
 	localStorage.setItem("sp:deployee", deployee);
 };
 
+const removeStoredDeployee = () => {
+	localStorage.removeItem("sp:deployee");
+};
+
 const getStoredBundler = () => {
 	return localStorage.getItem("sp:bundler");
 };
@@ -30,14 +32,17 @@ const setStoredBundler = (bundler: string) => {
 	localStorage.setItem("sp:bundler", bundler);
 };
 
+const removeStoredBundler = () => {
+	localStorage.removeItem("sp:bundler");
+};
+
 const setStoredCredentialId = (credentials: string) => {
 	localStorage.setItem("sp:id", credentials);
 };
 
-// Not required for now, just for testing
-// const getStoredCredentialId = () => {
-// 	return localStorage.getItem("sp:id");
-// };
+const removeStoredCredentialId = () => {
+	localStorage.removeItem("sp:id");
+};
 
 const onVotes = async (bundlerKey: Keypair, deployee: string) => {
 	if (bundlerKey && deployee) {
@@ -109,6 +114,12 @@ export const useStellar = () => {
 		}
 	};
 
+	const reset = () => {
+		removeStoredDeployee();
+		removeStoredBundler();
+		removeStoredCredentialId();
+	};
+
 	useEffect(() => {
 		const init = async () => {
 			try {
@@ -147,5 +158,6 @@ export const useStellar = () => {
 		loadingSign,
 		loadingDeployee,
 		contractData,
+		reset,
 	};
 };

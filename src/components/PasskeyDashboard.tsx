@@ -5,12 +5,12 @@ import * as Form from "@radix-ui/react-form";
 import { toast } from "sonner";
 import { usePasskeyRegistration } from "../hooks/usePasskeyRegistration";
 import { usePasskeyAuthentication } from "../hooks/usePasskeyAuthentication";
-import { useStellar } from "@/hooks/useStellar/useStellar";
 import { truncateAccount } from "@/app/libs/stellar";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClipboard } from "@fortawesome/free-solid-svg-icons";
 import { useEffect } from "react";
+import { useStellarContext } from "@/hooks/useStellar/StellarContext";
 
 export const PasskeyDashboard = () => {
 	const identifier = "test"; // Replace with actual identifier logic if needed
@@ -23,7 +23,7 @@ export const PasskeyDashboard = () => {
 		loadingDeployee,
 		prepareSign,
 		contractData,
-	} = useStellar();
+	} = useStellarContext();
 
 	// Use the hooks
 	const {
