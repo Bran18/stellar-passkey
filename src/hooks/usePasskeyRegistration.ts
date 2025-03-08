@@ -13,11 +13,14 @@ export const usePasskeyRegistration = (
 	const [isCreatingPasskey, setIsCreatingPasskey] = useState<boolean>(false);
 	const [regSuccess, setRegSuccess] = useState<string>("");
 	const [regError, setRegError] = useState<string>("");
+	const [isAlreadyRegistered, setIsAlreadyRegistered] =
+		useState<boolean>(false);
 
 	const reset = () => {
 		setIsCreatingPasskey(false);
 		setRegSuccess("");
 		setRegError("");
+		setIsAlreadyRegistered(false);
 	};
 
 	const handleRegister = async () => {
@@ -95,6 +98,7 @@ export const usePasskeyRegistration = (
 					"Error: Authenticator was probably already registered by user";
 				setRegError(message);
 				toast.error(message);
+				setIsAlreadyRegistered(true);
 			} else {
 				let message = error.toString();
 				if (
@@ -118,6 +122,7 @@ export const usePasskeyRegistration = (
 		regError,
 		handleRegister,
 		isRegistered: Boolean(regSuccess),
+		isAlreadyRegistered,
 		reset,
 	};
 };

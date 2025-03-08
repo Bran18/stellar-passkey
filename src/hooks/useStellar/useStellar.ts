@@ -109,7 +109,9 @@ export const useStellar = () => {
 			if (!deployee) throw new Error("Deployee not found");
 			await handleVoteSend(bundlerKey.current, authTxn, lastLedger, signRes);
 			const votes = await onVotes(bundlerKey.current, deployee);
-			setContractData(votes);
+			if (votes) {
+				setContractData(votes);
+			}
 		} catch (error) {
 			console.error(error);
 		} finally {
@@ -129,8 +131,11 @@ export const useStellar = () => {
 		setLoadingSign(false);
 		bundlerKey.current = null;
 		window.location.reload();
-		// WORK IN PROGRESS
-		// Enable recreate the passkey
+	};
+
+	const signOut = () => {
+		// Perform signout by using the reset functionality
+		reset();
 	};
 
 	useEffect(() => {
@@ -173,5 +178,6 @@ export const useStellar = () => {
 		loadingDeployee,
 		contractData,
 		reset,
+		signOut,
 	};
 };

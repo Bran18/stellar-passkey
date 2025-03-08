@@ -1,6 +1,6 @@
 import { ENV } from "@/app/libs/env";
 import Redis from "ioredis";
-import RedisMock from "ioredis-mock";
+import { redisMock } from "./RedisMock";
 
 import type {
 	AuthenticatorTransportFuture,
@@ -8,9 +8,10 @@ import type {
 } from "@simplewebauthn/server";
 
 const getRedis = () => {
+	console.log("ENV.REDIS_URL", ENV.REDIS_URL);
 	if (!ENV.REDIS_URL) {
-		console.log("No REDIS_URL found, using RedisMock");
-		return new RedisMock();
+		console.log("No REDIS_URL found, using custom RedisMock");
+		return redisMock;
 	}
 
 	console.log("Using Redis URL", ENV.REDIS_URL.replace(/[A-Z]/g, "-"));
@@ -54,8 +55,28 @@ export const getChallenge = async ({
 	identifier: string;
 	rpId: string;
 }): Promise<string | null> => {
-	const key = getChallengeKey(identifier, rpId);
-	return redis.get(key);
+	try {
+		const key = getChallengeKey(identifier, rpId);
+		console.log("getChallenge", key);
+
+		// Add more detailed logging
+		console.log("Current time:", new Date().toISOString());
+		console.log("Is using Redis Mock:", !ENV.REDIS_URL);
+
+		const result = await redis.get(key);
+		console.log("getChallenge result:", result);
+
+		if (!result) {
+			console.warn(
+				`Challenge not found for ${key}. This may cause authentication to fail.`,
+			);
+		}
+
+		return result;
+	} catch (error) {
+		console.error("Error retrieving challenge:", error);
+		return null;
+	}
 };
 
 export const deleteChallenge = async ({
@@ -66,6 +87,7 @@ export const deleteChallenge = async ({
 	rpId: string;
 }) => {
 	const key = getChallengeKey(identifier, rpId);
+	console.log("deleteChallenge", key);
 	return redis.del(key);
 };
 
