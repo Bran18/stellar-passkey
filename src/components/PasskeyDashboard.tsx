@@ -9,7 +9,7 @@ import { truncateAccount } from "@/app/libs/stellar";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClipboard, faBug } from "@fortawesome/free-solid-svg-icons";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useStellarContext } from "@/hooks/useStellar/StellarContext";
 import { SignOutButton } from "./SignOutButton";
 import { RedisDebug } from "@/app/libs/redis-debug";
@@ -20,7 +20,7 @@ import type { RedisDebugResponse } from "@/app/libs/redis-debug";
 export const PasskeyDashboard = () => {
 	const identifier = "test"; // Replace with actual identifier logic if needed
 	const [isWebAuthnSupported, setIsWebAuthnSupported] = React.useState(false);
-	const [showDebugPanel, setShowDebugPanel] = React.useState(false);
+	const [showDebugPanel, setShowDebugPanel] = React.useState(true);
 	const [debugData, setDebugData] = React.useState<RedisDebugResponse | null>(null);
 	const [isLoading, setIsLoading] = React.useState(false);
 
@@ -54,6 +54,10 @@ export const PasskeyDashboard = () => {
 
 	// State for action
 	const [action, setAction] = React.useState<string | null>(null);
+
+	// Add state for challenge key monitor
+	const [challengeKeys, setChallengeKeys] = React.useState<string[]>([]);
+	const [lastRefreshed, setLastRefreshed] = React.useState<string>('');
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -149,6 +153,39 @@ export const PasskeyDashboard = () => {
 		}
 	};
 
+	// Function to check for challenge keys - memoized with useCallback
+	const refreshChallengeKeys = useCallback(async () => {
+		try {
+			const data = await RedisDebug.getState();
+			const timestamp = new Date().toLocaleTimeString();
+			setLastRefreshed(timestamp);
+
+			if (data.state && Object.keys(data.state).length > 0) {
+				const keys = Object.keys(data.state)
+					.filter(key => key.startsWith("challenge:"));
+				setChallengeKeys(keys);
+			} else {
+				setChallengeKeys([]);
+			}
+		} catch (error) {
+			console.error("Error refreshing challenge keys:", error);
+			setChallengeKeys([]);
+		}
+	}, [setChallengeKeys, setLastRefreshed]);
+
+	// Refresh challenge keys on initial render with proper dependencies
+	useEffect(() => {
+		refreshChallengeKeys();
+
+		// Set up periodic refresh every 5 seconds
+		const interval = setInterval(() => {
+			refreshChallengeKeys();
+		}, 5000);
+
+		// Clean up interval on unmount
+		return () => clearInterval(interval);
+	}, [refreshChallengeKeys]);
+
 	useEffect(() => {
 		if (!browserSupportsWebAuthn()) {
 			setIsWebAuthnSupported(false);
@@ -186,96 +223,115 @@ export const PasskeyDashboard = () => {
 
 	// Add debug panel to the UI
 	const renderDebugPanel = () => {
-		if (!showDebugPanel) return null;
-
-		// Simpler debug panel that's less likely to crash
+		// Debug panel will always be shown (showDebugPanel is true by default)
 		return (
-			<div className="mt-8 p-4 border border-gray-300 rounded-md bg-gray-50">
-				<h3 className="text-lg font-semibold mb-4 text-purple-800">Redis Debug Panel</h3>
+			<div className="mt-8 border-t-4 border-purple-500 pt-6">
+				<div className="bg-purple-50 shadow-md rounded-md p-4">
+					<h3 className="text-lg font-bold mb-4 text-purple-800 flex items-center">
+						<FontAwesomeIcon icon={faBug} className="mr-2" />
+						Redis Debug Panel
+					</h3>
 
-				<div className="space-y-4">
-					<div>
-						<p className="text-sm text-gray-600 mb-2">Basic Debug Operations:</p>
-						<div className="flex space-x-4">
+					{/* Add challenge key monitor */}
+					<div className="mb-4 bg-white p-3 rounded-md border border-purple-200 shadow-sm">
+						<div className="flex justify-between items-center mb-2">
+							<p className="text-sm font-medium text-purple-700">Challenge Key Monitor</p>
+							<span className="text-xs text-gray-500">
+								Last updated: {lastRefreshed || 'Never'}
+							</span>
+						</div>
+
+						<div className="bg-gray-100 p-2 rounded min-h-[40px]">
+							{challengeKeys.length > 0 ? (
+								<ul className="text-xs space-y-1">
+									{challengeKeys.map(key => (
+										<li key={key} className="flex items-center">
+											<span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2" />
+											{key}
+										</li>
+									))}
+								</ul>
+							) : (
+								<p className="text-xs text-gray-500 italic">No challenge keys found</p>
+							)}
+						</div>
+
+						<div className="mt-2 text-right">
 							<button
 								type="button"
-								className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-								onClick={() => {
-									toast.info("Opening API debug in new tab");
-									window.open("/api/redis-debug", "_blank");
-								}}
+								className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 transition-colors"
+								onClick={refreshChallengeKeys}
 							>
-								View All Keys in API
-							</button>
-
-							<button
-								type="button"
-								className="px-3 py-1 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors"
-								onClick={() => {
-									try {
-										RedisDebug.flushAll()
-											.then(() => toast.success("Redis data flushed"))
-											.catch(err => {
-												console.error(err);
-												toast.error("Failed to flush Redis");
-											});
-									} catch (error) {
-										console.error(error);
-										toast.error("Error calling Redis flush");
-									}
-								}}
-							>
-								Flush Redis
+								Refresh Now
 							</button>
 						</div>
 					</div>
 
-					<div>
-						<p className="text-sm text-gray-600 mb-2">Challenge Key Debugging:</p>
-						<div className="flex flex-col space-y-2">
-							<div className="text-xs text-gray-500">
-								Open browser console and type:
-								<pre className="bg-gray-800 text-green-400 p-2 rounded-md mt-1 overflow-auto">
-									window.redisDebug.logChallengeKeys()
-								</pre>
-							</div>
+					<div className="space-y-4">
+						<div>
+							<p className="text-sm font-medium text-purple-700 mb-2">Basic Debug Operations:</p>
+							<div className="flex space-x-4">
+								<button
+									type="button"
+									className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+									onClick={() => {
+										toast.info("Opening API debug in new tab");
+										window.open("/api/redis-debug", "_blank");
+									}}
+								>
+									View All Keys in API
+								</button>
 
-							<div className="text-xs text-gray-500">
-								Or check a specific challenge key:
-								<pre className="bg-gray-800 text-green-400 p-2 rounded-md mt-1 overflow-auto">
-									window.redisDebug.getKey('challenge:localhost:test')
-								</pre>
+								<button
+									type="button"
+									className="px-3 py-1 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors shadow-sm"
+									onClick={() => {
+										try {
+											RedisDebug.flushAll()
+												.then(() => toast.success("Redis data flushed"))
+												.catch(err => {
+													console.error(err);
+													toast.error("Failed to flush Redis");
+												});
+										} catch (error) {
+											console.error(error);
+											toast.error("Error calling Redis flush");
+										}
+									}}
+								>
+									Flush Redis
+								</button>
 							</div>
 						</div>
-					</div>
 
-					<div>
-						<p className="text-sm text-gray-600">Test your Redis connection:</p>
-						<div className="flex space-x-4 mt-2">
-							<button
-								type="button"
-								className="px-3 py-1 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors"
-								onClick={() => {
-									toast.info("Testing Redis connection...");
-									window.open("/api/redis-test", "_blank");
-								}}
-							>
-								Test Redis
-							</button>
+						<div>
+							<p className="text-sm font-medium text-purple-700">Test your Redis connection:</p>
+							<div className="flex space-x-4 mt-2">
+								<button
+									type="button"
+									className="px-3 py-1 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors shadow-sm"
+									onClick={() => {
+										toast.info("Testing Redis connection...");
+										window.open("/api/redis-test", "_blank");
+									}}
+								>
+									Test Redis
+								</button>
 
-							<button
-								type="button"
-								className="px-3 py-1 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-colors"
-								onClick={() => {
-									toast.info("Setting test data...");
-									fetch("/api/redis-test", { method: "POST" })
-										.then(r => r.json())
-										.then(() => toast.success("Test data set"))
-										.catch(() => toast.error("Failed to set test data"));
-								}}
-							>
-								Set Test Data
-							</button>
+								<button
+									type="button"
+									className="px-3 py-1 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-colors shadow-sm"
+									onClick={() => {
+										toast.info("Setting test data...");
+										fetch("/api/redis-test", { method: "POST" })
+											.then(r => r.json())
+											.then(() => toast.success("Test data set"))
+											.catch(() => toast.error("Failed to set test data"));
+									}}
+								>
+									Set Test Data
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -292,17 +348,6 @@ export const PasskeyDashboard = () => {
 					Passkey Management
 				</h2>
 				<div className="flex items-center space-x-2">
-					{process.env.NODE_ENV === "development" && (
-						<button
-							type="button"
-							onClick={() => setShowDebugPanel(!showDebugPanel)}
-							className="p-2 text-gray-500 hover:text-purple-700 transition-colors"
-							aria-label="Toggle debug panel"
-							title="Toggle Redis debug panel"
-						>
-							<FontAwesomeIcon icon={faBug} />
-						</button>
-					)}
 					{deployee && <SignOutButton />}
 				</div>
 			</div>
